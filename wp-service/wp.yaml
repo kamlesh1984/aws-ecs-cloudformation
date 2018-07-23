@@ -1,5 +1,5 @@
 Description: >
-    This is an example of a Apache ECS service that needs to connect to another ECS service (product-service)
+    This is an example of a long running ECS service that needs to connect to another ECS service (product-service)
     via it's load balancer. We use environment variables to pass the URL of the product-service to this one's container(s).
 
 Parameters: 
@@ -46,18 +46,18 @@ Resources:
             DesiredCount: !Ref DesiredCount
             TaskDefinition: !Ref TaskDefinition
             LoadBalancers: 
-                - ContainerName: "website-service"
+                - ContainerName: "wp-service"
                   ContainerPort: 80
                   TargetGroupArn: !Ref TargetGroup
 
     TaskDefinition:
         Type: AWS::ECS::TaskDefinition
         Properties:
-            Family: website-service
+            Family: wp-service
             ContainerDefinitions:
-                - Name: website-service
+                - Name: wp-service
                   Essential: true
-                  Image: 788965751552.dkr.ecr.us-west-2.amazonaws.com/wp-ecr:apache2.4
+                  Image: 788965751552.dkr.ecr.us-west-2.amazonaws.com/wp-ecr:wordpress
                   Memory: 128
                   PortMappings:
                     - ContainerPort: 80

@@ -1,6 +1,5 @@
 Description: >
-    This is an example of a Apache ECS service that needs to connect to another ECS service (product-service)
-    via it's load balancer. We use environment variables to pass the URL of the product-service to this one's container(s).
+    This is an example of a long running ECS service that serves a JSON API of products.
 
 Parameters: 
 
@@ -17,11 +16,6 @@ Parameters:
         Type: Number
         Default: 1
 
-    MaxCount:
-        Description: Maximum number of instances of this task we can run across our cluster
-        Type: Number
-        Default: 2
-
     Listener:
         Description: The Application Load Balancer listener to register with
         Type: String
@@ -30,10 +24,6 @@ Parameters:
         Description: The path to register with the Application Load Balancer
         Type: String
         Default: /
-        
-    TargetGroup:
-        Description: External LoadBalancer TargetGroup
-        Type: String
 
 Resources:
 
@@ -46,46 +36,48 @@ Resources:
             DesiredCount: !Ref DesiredCount
             TaskDefinition: !Ref TaskDefinition
             LoadBalancers: 
-                - ContainerName: "website-service"
+                - ContainerName: "apache-service"
                   ContainerPort: 80
                   TargetGroupArn: !Ref TargetGroup
 
     TaskDefinition:
         Type: AWS::ECS::TaskDefinition
         Properties:
-            Family: website-service
+            Family: apache-service
             ContainerDefinitions:
-                - Name: website-service
+                - Name: apache-service
                   Essential: true
                   Image: 788965751552.dkr.ecr.us-west-2.amazonaws.com/wp-ecr:apache2.4
                   Memory: 128
                   PortMappings:
                     - ContainerPort: 80
+                  DockerLabels:
+                       Service: apache
                   LogConfiguration:
                     LogDriver: awslogs
                     Options:
-                        awslogs-group: !Ref AWS::StackName
+                        awslogs-group: awslogs-apache
                         awslogs-region: !Ref AWS::Region
-
+                        awslogs-stream-prefix: awslogs-apache
     CloudWatchLogsGroup:
         Type: AWS::Logs::LogGroup
         Properties: 
             LogGroupName: !Ref AWS::StackName
             RetentionInDays: 365  
 
-    #TargetGroup:
-    #    Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    #    Properties:
-    #        VpcId: !Ref VPC
-    #        Port: 80
-    #        Protocol: HTTP
-    #        Matcher: 
-    #            HttpCode: 200-299
-    #        HealthCheckIntervalSeconds: 10
-    #        HealthCheckPath: /status.html
-    #        HealthCheckProtocol: HTTP
-    #        HealthCheckTimeoutSeconds: 5
-    #        HealthyThresholdCount: 2
+    TargetGroup:
+        Type: AWS::ElasticLoadBalancingV2::TargetGroup
+        Properties:
+            VpcId: !Ref VPC
+            Port: 80
+            Protocol: HTTP
+            Matcher: 
+                HttpCode: 200-499
+            HealthCheckIntervalSeconds: 10
+            HealthCheckPath: /status.html
+            HealthCheckProtocol: HTTP
+            HealthCheckTimeoutSeconds: 5
+            HealthyThresholdCount: 2
     
     ListenerRule:
         Type: AWS::ElasticLoadBalancingV2::ListenerRule

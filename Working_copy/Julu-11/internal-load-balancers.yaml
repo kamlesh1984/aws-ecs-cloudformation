@@ -25,67 +25,48 @@ Resources:
     LoadBalancer:
         Type: AWS::ElasticLoadBalancingV2::LoadBalancer
         Properties:
-            Name: !Join [ '', ['External-', !Ref EnvironmentName] ]
+            Name: !Join [ '', ['Internal-', !Ref EnvironmentName] ]
             Subnets: !Ref Subnets
+            Scheme: internal
             SecurityGroups: 
                 - !Ref SecurityGroup
             Tags: 
                 - Key: Name
-                  Value: !Join [ '', ['External-', !Ref EnvironmentName] ]
+                  Value: !Join [ '', ['Internal-', !Ref EnvironmentName] ]
 
     LoadBalancerListener:
         Type: AWS::ElasticLoadBalancingV2::Listener
         Properties:
             LoadBalancerArn: !Ref LoadBalancer
-            Port: 80
+            Port: 8080
             Protocol: HTTP 
             DefaultActions: 
                 - Type: forward
-                  TargetGroupArn: !Ref DefaultTargetGroup
+                  TargetGroupArn: !Ref DefaultInternalTargetGroup
     
     # We define a default target group here, as this is a mandatory Parameters
     # when creating an Application Load Balancer Listener. This is not used, instead
     # a target group is created per-service in each service template (../services/*)
-    #DefaultTargetGroup:
-    #    Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    #    Properties:
-    #        Name: !Sub ${EnvironmentName}-default
-    #        VpcId: !Ref VPC
-    #        Port: 80
-    #        Protocol: HTTP
-            
-    DefaultTargetGroup:
+    DefaultInternalTargetGroup:
         Type: AWS::ElasticLoadBalancingV2::TargetGroup
         Properties:
-            Name: !Sub ${EnvironmentName}-external-default
+            Name: !Sub ${EnvironmentName}-internal-default
             VpcId: !Ref VPC
             Port: 80
             Protocol: HTTP
-            Matcher: 
-                HttpCode: 200-299
-            HealthCheckIntervalSeconds: 10
-            HealthCheckPath: /status.html
-            HealthCheckProtocol: HTTP
-            HealthCheckTimeoutSeconds: 5
-            HealthyThresholdCount: 2
            
 Outputs:
 
-    LoadBalancer:
+    InternalLoadBalancer:
         Description: A reference to the Application Load Balancer
         Value: !Ref LoadBalancer
 
-    LoadBalancerUrl:
+    InternalLoadBalancerUrl:
         Description: The URL of the ALB
         Value: !GetAtt LoadBalancer.DNSName
 
-    Listener:
-        Description: A reference to a port 80 listener
-        Value: !Ref LoadBalancerListener
-    
-    TargetGroup:
-        Description: A reference to a port 80 listener
-        Value: !Ref DefaultTargetGroup
-        
+    InternalListener:
+        Description: A reference to a port 8080 listener
+        Value: !Ref LoadBalancerListener  
 
     

@@ -1,6 +1,3 @@
-Description: >
-    Creating Router 53 DNS Entries for MySql DB and Internal Load Balancer.
-
 Parameters:
 
     EnvironmentName:
@@ -36,7 +33,19 @@ Resources:
             Key: "wordpress"
             Value: "private"
 
+#    #DNS RecordSet
+#    DNSRecord:
+#        Type: AWS::Route53::RecordSet
+#        Properties:
+#           HostedZoneId: !Ref 'HostedZone'
+#           Comment: DNS name for my instance.
+#           Name: ilb.wp.com
+#           Type: CNAME
+#           TTL: '900'
+#           ResourceRecords:
+#           - !Ref InternalLoadBalancerUrl
 
+    #DNS RecordSet group
     DNSRecord:
         Type: AWS::Route53::RecordSetGroup
         Properties:
