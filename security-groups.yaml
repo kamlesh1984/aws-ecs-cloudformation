@@ -75,4 +75,3 @@ Outputs:
     InternalLoadBalancerSecurityGroup:
         Description: A reference to the security group for load balancers
         Value: !Ref InternalLoadBalancerSecurityGroup
-
